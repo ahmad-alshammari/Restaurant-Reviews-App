@@ -78,7 +78,7 @@ initMap = () => {
         scrollWheelZoom: false
       });
   L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.jpg70?access_token={mapboxToken}', {
-    mapboxToken: '<your MAPBOX API KEY HERE>',
+      mapboxToken: 'pk.eyJ1IjoicHJvZ3JhbW1lcnRqIiwiYSI6ImNrM3g1OTk5MzA4b3Eza3A2aGkxZGZpNmkifQ.8P6alShVITNo2PXA6DCjsA',
     maxZoom: 18,
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
       '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
@@ -87,6 +87,7 @@ initMap = () => {
   }).addTo(newMap);
 
   updateRestaurants();
+  document.getElementById('map').tabIndex = '-1';
 }
 /* window.initMap = () => {
   let loc = {
@@ -157,31 +158,62 @@ fillRestaurantsHTML = (restaurants = self.restaurants) => {
  */
 createRestaurantHTML = (restaurant) => {
   const li = document.createElement('li');
+const link = document.createElement('a');
+// link.innerHTML = 'View Details';
+link.href = DBHelper.urlForRestaurant(restaurant);
+link.className = restaurant.cuisine_type.toLowerCase();
+link.setAttribute('aria-label', 'Details of ' + restaurant.name + ' restaurant, ' + restaurant.neighborhood);
+link.tabIndex = '0';
+li.append(link);
 
-  const image = document.createElement('img');
-  image.className = 'restaurant-img';
-  image.src = DBHelper.imageUrlForRestaurant(restaurant);
-  li.append(image);
+const image = document.createElement('img');
+image.className = 'restaurant-img';
+image.src = DBHelper.imageUrlForRestaurant(restaurant);
+image.alt = 'Image of ' + restaurant.name + ' restaurant';
+link.append(image);
 
-  const name = document.createElement('h1');
-  name.innerHTML = restaurant.name;
-  li.append(name);
+const label = document.createElement('div');
+label.className = 'restaurant-label';
+link.append(label);
 
-  const neighborhood = document.createElement('p');
-  neighborhood.innerHTML = restaurant.neighborhood;
-  li.append(neighborhood);
+const name = document.createElement('h1');
+name.className = 'restaurant-name';
+name.innerHTML = restaurant.name;
+label.append(name);
 
-  const address = document.createElement('p');
-  address.innerHTML = restaurant.address;
-  li.append(address);
+const neighborhood = document.createElement('p');
+neighborhood.innerHTML = restaurant.neighborhood;
+label.append(neighborhood);
 
-  const more = document.createElement('a');
-  more.innerHTML = 'View Details';
-  more.href = DBHelper.urlForRestaurant(restaurant);
-  li.append(more)
+const address = document.createElement('p');
+address.className = 'restaurant-address';
+address.innerHTML = restaurant.address;
+label.append(address);
 
-  return li
+const hr = document.createElement('hr');
+label.append(hr);
+
+const rating = document.createElement('span');
+rating.className = 'rating';
+rating.innerHTML = 'Rating: ' + restaurantRating(restaurant); 
+label.append(rating);
+
+const type = document.createElement('span');
+type.className = 'cuisine-type';
+type.innerHTML = restaurant.cuisine_type;
+label.append(type);
+
+return li;
 }
+
+restaurantRating = (restaurant) => {
+    let reviews = restaurant.reviews.map( (r) => r.rating);
+let rating = reviews.reduce((a, b) => a + b, 0) / reviews.length;
+rating = rating.toFixed(1);
+
+return rating;
+};
+
 
 /**
  * Add markers for current restaurants to the map.
